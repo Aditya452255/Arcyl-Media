@@ -5,7 +5,9 @@ import { NotFoundError } from "../utils/errors";
 
 export class ProjectService {
   static async createProject(data, userId) {
-    const project = await ProjectRepository.create(data);
+    const cleanData = { ...data };
+    delete cleanData.progress;
+    const project = await ProjectRepository.create(cleanData);
     await AuditService.log("PROJECT_CREATE", { projectId: project.id, name: project.name }, userId, null, project, "Project");
     try {
       await NotificationService.notifyAll("New Project Created", `Project "${project.name}" has been created.`, "CMS_UPDATED");
@@ -16,7 +18,9 @@ export class ProjectService {
   static async updateProject(id, data, userId) {
     const existing = await ProjectRepository.findById(id);
     if (!existing) throw new NotFoundError("Project not found");
-    const project = await ProjectRepository.update(id, data);
+    const cleanData = { ...data };
+    delete cleanData.progress;
+    const project = await ProjectRepository.update(id, cleanData);
     await AuditService.log("PROJECT_UPDATE", { projectId: id }, userId, existing, project, "Project");
     return project;
   }

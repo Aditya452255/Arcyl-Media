@@ -6,7 +6,9 @@ import { NotFoundError } from "../utils/errors";
 export class MilestoneService {
   static async createMilestone(projectId, data, userId) {
     await this._assertProjectExists(projectId);
-    const milestone = await MilestoneRepository.create({ ...data, projectId });
+    const cleanData = { ...data };
+    delete cleanData.progress;
+    const milestone = await MilestoneRepository.create({ ...cleanData, projectId });
     await AuditService.log("MILESTONE_CREATE", { milestoneId: milestone.id, projectId }, userId, null, milestone, "Milestone");
     return milestone;
   }
@@ -14,7 +16,9 @@ export class MilestoneService {
   static async updateMilestone(id, data, userId) {
     const existing = await MilestoneRepository.findById(id);
     if (!existing) throw new NotFoundError("Milestone not found");
-    const milestone = await MilestoneRepository.update(id, data);
+    const cleanData = { ...data };
+    delete cleanData.progress;
+    const milestone = await MilestoneRepository.update(id, cleanData);
     await AuditService.log("MILESTONE_UPDATE", { milestoneId: id }, userId, existing, milestone, "Milestone");
     return milestone;
   }

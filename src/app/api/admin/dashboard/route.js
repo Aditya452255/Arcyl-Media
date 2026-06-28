@@ -8,8 +8,8 @@ import { withPermission } from "../../../../middleware/authMiddleware";
  * Retreives aggregated statistics and recent history logs for the admin console.
  */
 export const GET = withErrorHandler(
-  withPermission("Dashboard.Read", async () => {
-    const data = await DashboardService.getSummary();
+  withPermission("Dashboard.Read", async (req) => {
+    const data = await DashboardService.getSummary(req.user?.id);
     return ApiResponse.success("Dashboard summary retrieved successfully", data, 200);
   })
 );

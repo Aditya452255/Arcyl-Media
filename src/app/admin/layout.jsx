@@ -19,6 +19,7 @@ import {
   Zap,
   LogOut,
   ChevronRight,
+  ListTodo,
 } from "lucide-react";
 
 export default function AdminLayout({ children }) {
@@ -81,6 +82,7 @@ export default function AdminLayout({ children }) {
 
   const menuItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+    { label: "Tasks Manager", href: "/admin/tasks", icon: ListTodo },
     { label: "CMS Hub", href: "/admin/cms", icon: FileCode },
     { label: "CRM Leads", href: "/admin/leads", icon: Users },
     { label: "Media Library", href: "/admin/media", icon: ImageIcon },

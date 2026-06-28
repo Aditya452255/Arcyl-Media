@@ -5,7 +5,17 @@ export class DashboardService {
   /**
    * Aggregates stats and histories for admin console summary in a single query
    */
-  static async getSummary() {
+  static async getSummary(userId = null) {
+    const now = new Date();
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(now);
+    endOfToday.setHours(23, 59, 59, 999);
+
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
     const [
       totalLeads,
       newLeads,
@@ -15,6 +25,11 @@ export class DashboardService {
       recentActivity,
       recentLeads,
       recentContactSubmissions,
+      myTasksCount,
+      dueTodayCount,
+      overdueCount,
+      completedThisWeekCount,
+      recentTaskActivity,
     ] = await Promise.all([
       prisma.lead.count(),
       prisma.lead.count({ where: { status: LEAD_STATUS.NEW } }),
@@ -45,6 +60,24 @@ export class DashboardService {
           lead: true,
         },
       }),
+      userId
+        ? prisma.task.count({ where: { assigneeId: userId, isDeleted: false, status: { not: "DONE" } } })
+        : Promise.resolve(0),
+      prisma.task.count({
+        where: { isDeleted: false, status: { not: "DONE" }, dueDate: { gte: startOfToday, lte: endOfToday } },
+      }),
+      prisma.task.count({
+        where: { isDeleted: false, status: { not: "DONE" }, dueDate: { lt: startOfToday } },
+      }),
+      prisma.task.count({
+        where: { isDeleted: false, status: "DONE", completedAt: { gte: startOfWeek } },
+      }),
+      prisma.activityLog.findMany({
+        where: { resource: "Task" },
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: { user: { select: { id: true, name: true } } },
+      }),
     ]);
 
     return {
@@ -57,6 +90,13 @@ export class DashboardService {
         contactMessages: contactMessagesCount,
         websiteViews: 14580, // Placeholder
         revenue: 85400, // Placeholder
+      },
+      taskWidgets: {
+        myTasksCount,
+        dueTodayCount,
+        overdueCount,
+        completedThisWeekCount,
+        recentTaskActivity,
       },
       recentActivity,
       recentLeads,

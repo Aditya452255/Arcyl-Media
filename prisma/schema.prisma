@@ -94,6 +94,12 @@ model User {
   discussionReplies DiscussionReply[] @relation("ReplyAuthor")
   calendarEvents   CalendarEvent[]   @relation("CalendarCreator")
 
+  // Phase 5 relations
+  assignedTasks     Task[]            @relation("TaskAssignee")
+  createdTasks      Task[]            @relation("TaskCreator")
+  updatedTasks      Task[]            @relation("TaskUpdater")
+  taskComments      TaskComment[]
+
   @@map("users")
 }
 
@@ -171,6 +177,7 @@ model MediaAsset {
   uploadedById   String?
   uploadedBy     User?         @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
   projectFiles   ProjectFile[]
+  taskAttachments TaskAttachment[]
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -620,6 +627,7 @@ model Project {
   discussions  Discussion[]
   timeEntries  TimeEntry[]
   deliverables Deliverable[]
+  tasks        Task[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -652,6 +660,7 @@ model Milestone {
   status      MilestoneStatus @default(PENDING)
   progress    Int             @default(0)
   isDeleted   Boolean         @default(false)
+  tasks       Task[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -761,4 +770,73 @@ model CalendarEvent {
 
   @@map("calendar_events")
 }
+
+// ─────────────────────────────────────────────────────────
+// Phase 5 — Simple Task Management
+// ─────────────────────────────────────────────────────────
+
+enum TaskStatus {
+  TODO
+  DOING
+  REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Task {
+  id           String           @id @default(uuid())
+  projectId    String
+  project      Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestoneId  String?
+  milestone    Milestone?       @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  title        String
+  description  String?
+  status       TaskStatus       @default(TODO)
+  priority     TaskPriority     @default(MEDIUM)
+  assigneeId   String?
+  assignee     User?            @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  dueDate      DateTime?
+  completedAt  DateTime?
+  createdById  String?
+  createdBy    User?            @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedById  String?
+  updatedBy    User?            @relation("TaskUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+  isDeleted    Boolean          @default(false)
+  comments     TaskComment[]
+  attachments  TaskAttachment[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@map("tasks")
+}
+
+model TaskComment {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("task_comments")
+}
+
+model TaskAttachment {
+  id           String     @id @default(uuid())
+  taskId       String
+  task         Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  mediaAssetId String
+  mediaAsset   MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@map("task_attachments")
+}
+
 
