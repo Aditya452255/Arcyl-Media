@@ -585,6 +585,9 @@ model Client {
   contacts    ClientContact[]
   projects    Project[]
   users       User[]
+  quotes      Quote[]
+  proposals   Proposal[]
+  invoices    Invoice[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -635,6 +638,8 @@ model Project {
   deliverables Deliverable[]
   tasks        Task[]
   messages     Message[]
+  proposals    Proposal[]
+  invoices     Invoice[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -859,6 +864,90 @@ model Message {
 
   @@map("messages")
 }
+
+// ─────────────────────────────────────────────────────────
+// Phase 6.5 — Business Essentials
+// ─────────────────────────────────────────────────────────
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Quote {
+  id            String    @id @default(uuid())
+  clientId      String
+  client        Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  services      Json      // array of service details/cost estimates
+  estimatedCost Float
+  notes         String?
+  expiry        DateTime
+  isConverted   Boolean   @default(false)
+  isDeleted     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("quotes")
+}
+
+model Proposal {
+  id             String         @id @default(uuid())
+  proposalNumber String         @unique
+  clientId       String
+  client         Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?       @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  title          String
+  description    String?
+  scopeOfWork    String?
+  timeline       String?
+  deliverables   Json?          // list of deliverables/cost items
+  price          Float
+  currency       String         @default("USD")
+  tax            Float          @default(0)
+  discount       Float          @default(0)
+  validUntil     DateTime
+  status         ProposalStatus @default(DRAFT)
+  isDeleted      Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@map("proposals")
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  invoiceNumber String        @unique
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId     String?
+  project       Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  amount        Float
+  tax           Float         @default(0)
+  discount      Float         @default(0)
+  total         Float
+  status        InvoiceStatus @default(DRAFT)
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("invoices")
+}
+
 
 
 

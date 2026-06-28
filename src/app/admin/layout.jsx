@@ -83,6 +83,7 @@ export default function AdminLayout({ children }) {
   const menuItems = [
     { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { label: "Tasks Manager", href: "/admin/tasks", icon: ListTodo },
+    { label: "Finance & Billing", href: "/admin/finance", icon: CircleDollarSign },
     { label: "CMS Hub", href: "/admin/cms", icon: FileCode },
     { label: "CRM Leads", href: "/admin/leads", icon: Users },
     { label: "Media Library", href: "/admin/media", icon: ImageIcon },
@@ -94,7 +95,6 @@ export default function AdminLayout({ children }) {
   const placeholderItems = [
     { label: "Projects", icon: FolderKanban },
     { label: "Clients Manager", icon: UsersRound },
-    { label: "Finance & Invoice", icon: CircleDollarSign },
     { label: "AI Content Studio", icon: Bot },
     { label: "Automation Engine", icon: Zap },
   ];
