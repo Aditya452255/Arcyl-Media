@@ -79,3 +79,100 @@ This document lists database models, pipeline enums, and RBAC permissions matric
 * `updatedById` (UUID, FK, SetNull)
 
 *(Note: Other CMS tables: `cms_about`, `cms_portfolio`, `cms_testimonials`, `cms_faqs`, `cms_technologies`, `cms_team_members`, `cms_site_settings`, `cms_social_links`, `cms_footer` share this unified tracking metadata pattern).*
+
+---
+
+## 6. Employee Operations Models
+
+### Employees (`employees`)
+* `id` (UUID, PK)
+* `userId` (UUID, FK, Unique) - linked credential account
+* `departmentId` (UUID, FK, SetNull)
+* `phone` / `jobTitle` / `status` (ACTIVE, INACTIVE, LEAVE)
+
+### Departments (`departments`)
+* `id` (UUID, PK)
+* `name` (Unique) / `description` / `slug`
+
+---
+
+## 7. Client & Project Workspace Models
+
+### Clients (`clients`)
+* `id` (UUID, PK)
+* `companyName` / `logo` / `industry` / `website` / `address`
+* `gst` / `pan` / `timezone` / `currency` / `status` (ACTIVE, INACTIVE)
+
+### ClientContacts (`client_contacts`)
+* `id` (UUID, PK)
+* `clientId` (UUID, FK)
+* `firstName` / `lastName` / `email` / `phone` / `position`
+
+### Projects (`projects`)
+* `id` (UUID, PK)
+* `clientId` (UUID, FK)
+* `name` / `description` / `status` (PLANNING, ACTIVE, COMPLETED, ON_HOLD, CANCELLED)
+* `progress` (Float) / `deadline` (DateTime)
+* `managerId` (UUID, FK) - links to managing User
+
+### Milestones (`milestones`)
+* `id` (UUID, PK)
+* `projectId` (UUID, FK)
+* `title` / `description` / `dueDate` / `progress` / `status` (PENDING, ACTIVE, COMPLETED)
+
+### Deliverables (`deliverables`)
+* `id` (UUID, PK)
+* `projectId` (UUID, FK)
+* `title` / `description` / `version` / `fileUrl`
+* `status` (PENDING, SUBMITTED, APPROVED, REJECTED)
+* `approvalStatus` (PENDING, APPROVED, REJECTED) / `feedback` (Text)
+
+### ProjectFiles (`project_files`)
+* `id` (UUID, PK)
+* `projectId` (UUID, FK)
+* `mediaAssetId` (UUID, FK) - links to upload media asset catalogue
+* `fileCategory` (DELIVERABLE, REQUIREMENT, CONTRACT, OTHER)
+* `uploadedById` (UUID, FK)
+
+---
+
+## 8. Task Management & Communication Models
+
+### Tasks (`tasks`)
+* `id` (UUID, PK)
+* `projectId` (UUID, FK)
+* `milestoneId` (UUID, FK, SetNull)
+* `title` / `description` / `status` (TODO, DOING, REVIEW, DONE)
+* `priority` (LOW, MEDIUM, HIGH, URGENT)
+* `assigneeId` (UUID, FK) / `dueDate` / `completedAt`
+
+### Messages (`messages`)
+* `id` (UUID, PK)
+* `projectId` (UUID, FK)
+* `senderId` (UUID, FK)
+* `content` (Text) / `attachments` (Json) / `isRead` (Boolean)
+
+---
+
+## 9. Business & Finance Models
+
+### Quotes (`quotes`)
+* `id` (UUID, PK)
+* `clientId` (UUID, FK)
+* `services` (Json) - array of services/estimates
+* `estimatedCost` (Float) / `notes` (Text) / `isConverted` (Boolean)
+
+### Proposals (`proposals`)
+* `id` (UUID, PK)
+* `proposalNumber` (Unique String, e.g. `ARC-PROP-XXXXX`)
+* `clientId` (UUID, FK) / `projectId` (UUID, FK, Nullable)
+* `title` / `description` / `scopeOfWork` / `price` / `tax` / `discount` / `validUntil`
+* `status` (DRAFT, SENT, ACCEPTED, REJECTED, EXPIRED)
+
+### Invoices (`invoices`)
+* `id` (UUID, PK)
+* `invoiceNumber` (Unique String, e.g. `ARC-INV-XXXXX`)
+* `clientId` (UUID, FK) / `projectId` (UUID, FK, Nullable)
+* `issueDate` / `dueDate` / `amount` / `tax` / `discount` / `total`
+* `status` (DRAFT, SENT, PAID, PARTIALLY_PAID, OVERDUE, CANCELLED)
+
