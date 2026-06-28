@@ -87,6 +87,13 @@ model User {
   footerEdits      Footer[]
   widgets          DashboardWidget[]
 
+  // Phase 4 relations
+  managedProjects  Project[]         @relation("ProjectManager")
+  projectFiles     ProjectFile[]     @relation("ProjectFileUploader")
+  discussions      Discussion[]      @relation("DiscussionAuthor")
+  discussionReplies DiscussionReply[] @relation("ReplyAuthor")
+  calendarEvents   CalendarEvent[]   @relation("CalendarCreator")
+
   @@map("users")
 }
 
@@ -160,11 +167,12 @@ model MediaAsset {
   tags           Json?    // tags list
   collectionName String?  // group collections
   version        Int      @default(1)
-  isDeleted      Boolean  @default(false)
+  isDeleted      Boolean       @default(false)
   uploadedById   String?
-  uploadedBy     User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  uploadedBy     User?         @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  projectFiles   ProjectFile[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("media_assets")
 }
@@ -188,10 +196,12 @@ model Employee {
   github           String?
   linkedin         String?
   portfolioUrl     String?
-  isDeleted        Boolean     @default(false)
-  managedDept      Department? @relation("DepartmentManager")
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  isDeleted        Boolean        @default(false)
+  managedDept      Department?    @relation("DepartmentManager")
+  projectMembers   ProjectMember[]
+  timeEntries      TimeEntry[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@map("employees")
 }
@@ -494,3 +504,261 @@ model Footer {
 
   @@map("cms_footer")
 }
+
+// ─────────────────────────────────────────────────────────
+// Phase 4 — Client & Project Workspace
+// ─────────────────────────────────────────────────────────
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  PROSPECT
+  ARCHIVED
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+enum DeliverableStatus {
+  DRAFT
+  SUBMITTED
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+enum CalendarEventType {
+  MEETING
+  DEADLINE
+  MILESTONE
+  REMINDER
+  BIRTHDAY
+  OTHER
+}
+
+model Client {
+  id          String          @id @default(uuid())
+  companyName String
+  logo        String?
+  industry    String?
+  website     String?
+  gst         String?
+  pan         String?
+  address     String?
+  timezone    String          @default("UTC")
+  currency    String          @default("USD")
+  status      ClientStatus    @default(ACTIVE)
+  notes       String?
+  isDeleted   Boolean         @default(false)
+  isArchived  Boolean         @default(false)
+  contacts    ClientContact[]
+  projects    Project[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("clients")
+}
+
+model ClientContact {
+  id                     String   @id @default(uuid())
+  clientId               String
+  client                 Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  firstName              String
+  lastName               String
+  position               String?
+  email                  String
+  phone                  String?
+  linkedin               String?
+  birthday               DateTime?
+  notes                  String?
+  preferredContactMethod String?
+  isDeleted              Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("client_contacts")
+}
+
+model Project {
+  id           String          @id @default(uuid())
+  name         String
+  description  String?
+  clientId     String?
+  client       Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  managerId    String?
+  manager      User?           @relation("ProjectManager", fields: [managerId], references: [id], onDelete: SetNull)
+  status       ProjectStatus   @default(PLANNING)
+  priority     ProjectPriority @default(MEDIUM)
+  budget       Float?
+  startDate    DateTime?
+  deadline     DateTime?
+  progress     Int             @default(0)
+  tags         Json?
+  isDeleted    Boolean         @default(false)
+  members      ProjectMember[]
+  milestones   Milestone[]
+  files        ProjectFile[]
+  discussions  Discussion[]
+  timeEntries  TimeEntry[]
+  deliverables Deliverable[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id                String   @id @default(uuid())
+  projectId         String
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  role              String   @default("Member")
+  allocationPercent Int      @default(100)
+  assignedAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([projectId, employeeId])
+  @@map("project_members")
+}
+
+model Milestone {
+  id          String          @id @default(uuid())
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      MilestoneStatus @default(PENDING)
+  progress    Int             @default(0)
+  isDeleted   Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("milestones")
+}
+
+model ProjectFile {
+  id           String     @id @default(uuid())
+  projectId    String
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaAssetId String
+  mediaAsset   MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+  fileCategory String     @default("OTHER")
+  version      Int        @default(1)
+  uploadedById String?
+  uploadedBy   User?      @relation("ProjectFileUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  isDeleted    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("project_files")
+}
+
+model Discussion {
+  id        String            @id @default(uuid())
+  projectId String
+  project   Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User              @relation("DiscussionAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  mentions  Json?
+  isDeleted Boolean           @default(false)
+  replies   DiscussionReply[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@map("discussions")
+}
+
+model DiscussionReply {
+  id           String     @id @default(uuid())
+  discussionId String
+  discussion   Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User       @relation("ReplyAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  content      String
+  mentions     Json?
+  isDeleted    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@map("discussion_replies")
+}
+
+model TimeEntry {
+  id         String    @id @default(uuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  startTime  DateTime
+  endTime    DateTime?
+  duration   Int?
+  notes      String?
+  isDeleted  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("time_entries")
+}
+
+model Deliverable {
+  id             String            @id @default(uuid())
+  projectId      String
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title          String
+  version        String            @default("1.0")
+  status         DeliverableStatus @default(DRAFT)
+  approvalStatus String            @default("PENDING")
+  feedback       String?
+  dueDate        DateTime?
+  fileUrl        String?
+  isDeleted      Boolean           @default(false)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@map("deliverables")
+}
+
+model CalendarEvent {
+  id          String            @id @default(uuid())
+  title       String
+  description String?
+  type        CalendarEventType @default(OTHER)
+  startAt     DateTime
+  endAt       DateTime?
+  isAllDay    Boolean           @default(false)
+  isRecurring Boolean           @default(false)
+  recurrence  Json?
+  projectId   String?
+  milestoneId String?
+  createdById String?
+  createdBy   User?             @relation("CalendarCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  isDeleted   Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("calendar_events")
+}
+

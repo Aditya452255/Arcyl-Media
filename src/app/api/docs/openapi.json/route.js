@@ -1,4 +1,4 @@
-import openapiSchema from "../../../utils/openapi.json";
+import openapiSchema from "../../../../utils/openapi.json";
 
 /**
  * GET /api/docs/openapi.json
