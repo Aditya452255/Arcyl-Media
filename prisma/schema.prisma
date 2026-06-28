@@ -100,6 +100,11 @@ model User {
   updatedTasks      Task[]            @relation("TaskUpdater")
   taskComments      TaskComment[]
 
+  // Phase 6 relations
+  clientId          String?
+  client            Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  sentMessages      Message[]         @relation("MessageSender")
+
   @@map("users")
 }
 
@@ -579,6 +584,7 @@ model Client {
   isArchived  Boolean         @default(false)
   contacts    ClientContact[]
   projects    Project[]
+  users       User[]
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
@@ -628,6 +634,7 @@ model Project {
   timeEntries  TimeEntry[]
   deliverables Deliverable[]
   tasks        Task[]
+  messages     Message[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -838,5 +845,20 @@ model TaskAttachment {
 
   @@map("task_attachments")
 }
+
+model Message {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  content     String
+  attachments Json?    // array of URLs
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@map("messages")
+}
+
 
 
