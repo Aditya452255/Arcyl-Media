@@ -54,16 +54,28 @@ export class ClientPortalService {
       orderBy: { createdAt: "desc" },
     });
 
-    // Recent activity in these projects
-    const recentActivity = await prisma.activityLog.findMany({
+    // Recent activity in these projects - fetch latest resource logs and filter in memory to avoid Json query issues
+    const rawActivity = await prisma.activityLog.findMany({
       where: {
         resource: { in: ["Project", "Deliverable", "Task", "Message"] },
-        details: { path: ["projectId"], equals: undefined }, // Or simplified filter
       },
-      take: 5,
+      take: 30,
       orderBy: { createdAt: "desc" },
       include: { user: { select: { id: true, name: true } } },
     });
+
+    const recentActivity = rawActivity
+      .filter((log) => {
+        if (log.resource === "Project" && log.resourceId) {
+          return projectIds.includes(log.resourceId);
+        }
+        if (log.details && typeof log.details === "object") {
+          const pId = log.details.projectId;
+          if (pId) return projectIds.includes(pId);
+        }
+        return true;
+      })
+      .slice(0, 5);
 
     return {
       client: {
