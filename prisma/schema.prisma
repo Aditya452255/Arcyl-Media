@@ -71,6 +71,7 @@ model User {
   mediaAssets  MediaAsset[]
   assignedLeads Lead[]       @relation("LeadAssignee")
   leadNotes    LeadNote[]
+  notifications Notification[]
 
   // CMS edits tracking relations
   heroEdits        Hero[]
@@ -84,6 +85,7 @@ model User {
   settingsEdits    SiteSetting[]
   socialEdits      SocialLink[]
   footerEdits      Footer[]
+  widgets          DashboardWidget[]
 
   @@map("users")
 }
@@ -130,33 +132,143 @@ model ContactSubmission {
 }
 
 model ActivityLog {
-  id        String   @id @default(uuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action    String
-  details   Json
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
+  id            String   @id @default(uuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action        String
+  details       Json
+  ipAddress     String?
+  userAgent     String?
+  requestId     String?  // request lifecycle ID
+  previousValue Json?
+  newValue      Json?
+  resource      String?  // target resource (e.g. Employee, CMS block)
+  createdAt     DateTime @default(now())
 
   @@map("activity_logs")
 }
 
 model MediaAsset {
+  id             String   @id @default(uuid())
+  url            String
+  publicId       String   @unique
+  fileType       String   // image, video, raw
+  mimeType       String
+  size           Int
+  folder         String?
+  altText        String?
+  tags           Json?    // tags list
+  collectionName String?  // group collections
+  version        Int      @default(1)
+  isDeleted      Boolean  @default(false)
+  uploadedById   String?
+  uploadedBy     User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("media_assets")
+}
+
+// Agency Core Models
+
+model Employee {
+  id               String      @id @default(uuid())
+  firstName        String
+  lastName         String
+  email            String      @unique
+  phone            String?
+  profilePhoto     String?
+  bio              String?
+  skills           Json?       // Skills array
+  designation      String
+  departmentId     String?
+  department       Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id], onDelete: SetNull)
+  joiningDate      DateTime
+  employmentStatus String      @default("ACTIVE") // ACTIVE, INACTIVE, SUSPENDED, TERMINATED
+  github           String?
+  linkedin         String?
+  portfolioUrl     String?
+  isDeleted        Boolean     @default(false)
+  managedDept      Department? @relation("DepartmentManager")
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("employees")
+}
+
+model Department {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  managerId String?    @unique
+  manager   Employee?  @relation("DepartmentManager", fields: [managerId], references: [id], onDelete: SetNull)
+  employees Employee[] @relation("DepartmentEmployees")
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("departments")
+}
+
+model OrganizationSetting {
+  id            String   @id @default(uuid())
+  companyName   String
+  logo          String?
+  favicon       String?
+  gst           String?
+  pan           String?
+  phone         String?
+  emails        Json?    // list of contact emails
+  address       String?
+  currency      String   @default("USD")
+  timezone      String   @default("UTC")
+  language      String   @default("en")
+  businessHours Json?
+  socialLinks   Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("organization_settings")
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  category    String   // SMTP, CLOUDINARY, THEME, FEATURE_FLAG, etc.
+  isEncrypted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_settings")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  message    String
+  type       String   // LEAD_CREATED, EMPLOYEE_ADDED, CMS_UPDATED, MEDIA_UPLOADED, USER_LOGIN, PERMISSION_CHANGED
+  isRead     Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("notifications")
+}
+
+model DashboardWidget {
   id           String   @id @default(uuid())
-  url          String
-  publicId     String   @unique
-  fileType     String   // image, video, raw
-  mimeType     String
-  size         Int
-  folder       String?
-  altText      String?
-  uploadedById String?
-  uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  widgetKey    String   // CRM_LEADS, OPERATIONAL_METRICS, etc.
+  isVisible    Boolean  @default(true)
+  displayOrder Int      @default(0)
+  preferences  Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  @@map("media_assets")
+  @@unique([userId, widgetKey])
+  @@map("dashboard_widgets")
 }
 
 // CMS Models

@@ -6,28 +6,60 @@ export class MediaRepository {
   }
 
   static async findById(id) {
-    return prisma.mediaAsset.findUnique({
+    return prisma.mediaAsset.findFirst({
+      where: { id, isDeleted: false },
+    });
+  }
+
+  static async update(id, data) {
+    return prisma.mediaAsset.update({
       where: { id },
+      data,
     });
   }
 
   static async delete(id) {
-    return prisma.mediaAsset.delete({
+    // Soft delete support by default
+    return prisma.mediaAsset.update({
       where: { id },
+      data: { isDeleted: true },
     });
   }
 
   /**
-   * Retrieves list of uploaded media items paginated
+   * Retrieves list of uploaded media items paginated with folder, tag and collection filters
    */
-  static async findManyPaginated({ page = 1, limit = 20, search }) {
+  static async findManyPaginated({
+    page = 1,
+    limit = 20,
+    search = "",
+    folder,
+    collectionName,
+    tag,
+  }) {
     const skip = (page - 1) * limit;
 
-    const where = {};
+    const where = { isDeleted: false };
+
+    if (folder) {
+      where.folder = folder;
+    }
+
+    if (collectionName) {
+      where.collectionName = collectionName;
+    }
+
+    if (tag) {
+      where.tags = {
+        array_contains: tag, // Postgres native JSON array search compatibility helper
+      };
+    }
+
     if (search) {
       where.OR = [
         { altText: { contains: search, mode: "insensitive" } },
         { folder: { contains: search, mode: "insensitive" } },
+        { collectionName: { contains: search, mode: "insensitive" } },
         { fileType: { contains: search, mode: "insensitive" } },
       ];
     }

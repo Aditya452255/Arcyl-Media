@@ -3,6 +3,7 @@ import { AuditService } from "./auditService";
 import { ValidationError, NotFoundError } from "../utils/errors";
 import cloudinary from "../config/cloudinary";
 import logger from "../utils/logger";
+import { NotificationService } from "./notificationService";
 
 export class MediaService {
   /**
@@ -15,7 +16,9 @@ export class MediaService {
     size,
     folder = "arcyl_media",
     userId = null,
-    altText = null
+    altText = null,
+    tags = [],
+    collectionName = null
   ) {
     if (!fileBuffer) {
       throw new ValidationError("No file buffer provided for uploading");
@@ -57,8 +60,20 @@ export class MediaService {
       size,
       folder,
       altText: altText || filename,
+      tags: tags || [],
+      collectionName,
       uploadedById: userId,
     });
+
+    try {
+      await NotificationService.notifyAll(
+        "Media Uploaded",
+        `New media asset "${asset.altText}" was uploaded to folder "${asset.folder}".`,
+        "MEDIA_UPLOADED"
+      );
+    } catch (err) {
+      // Don't fail the upload if notification system errors
+    }
 
     await AuditService.log("MEDIA_UPLOAD", { assetId: asset.id, publicId: asset.publicId }, userId);
     return asset;
@@ -72,7 +87,22 @@ export class MediaService {
   }
 
   /**
-   * Deletes asset from Cloudinary storage and database records
+   * Updates an existing media asset details
+   */
+  static async updateAsset(id, data, userId) {
+    const existing = await MediaRepository.findById(id);
+    if (!existing) {
+      throw new NotFoundError("Media asset not found");
+    }
+
+    const updated = await MediaRepository.update(id, data);
+
+    await AuditService.log("MEDIA_UPDATE", { assetId: id }, userId, existing, updated, "MediaAsset");
+    return updated;
+  }
+
+  /**
+   * Soft deletes asset from local catalog database records
    */
   static async deleteAsset(id, userId) {
     const asset = await MediaRepository.findById(id);
@@ -80,28 +110,8 @@ export class MediaService {
       throw new NotFoundError("Media asset not found");
     }
 
-    let resourceType = "image";
-    if (asset.fileType === "video") {
-      resourceType = "video";
-    } else if (asset.fileType === "raw") {
-      resourceType = "raw";
-    }
-
-    try {
-      await new Promise((resolve, reject) => {
-        cloudinary.uploader.destroy(
-          asset.publicId,
-          { resource_type: resourceType },
-          (error, result) => {
-            if (error) return reject(error);
-            resolve(result);
-          }
-        );
-      });
-    } catch (err) {
-      logger.error({ err, publicId: asset.publicId }, "Cloudinary file deletion failed, continuing DB cleanup");
-    }
-
+    // Since we upgraded to soft delete, we leave Cloudinary untouched to support version history,
+    // and only flag the local record as soft deleted
     await MediaRepository.delete(id);
     await AuditService.log("MEDIA_DELETE", { assetId: id, publicId: asset.publicId }, userId);
     return true;
