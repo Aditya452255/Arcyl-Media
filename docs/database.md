@@ -1,44 +1,55 @@
-# Arcyl Media Platform - Database Architecture
+# Arcyl Media Platform - Database & Relational Schema
 
-This document covers the PostgreSQL database schema defined via Prisma ORM.
+This document details the Prisma schema, default user roles, and database seed details.
 
-## Models
+## 1. System Roles (Enum: `Role`)
+The system supports the following user role classifications:
+* `SUPER_ADMIN`: Root privileges. Default user.
+* `ADMIN`: Administrative dashboard manager.
+* `MANAGER`: Project/Agent supervisor.
+* `DEVELOPER`: Production engineer.
+* `DESIGNER`: Visual asset creator.
+* `SALES`: Lead qualification representative.
+* `CLIENT`: External portal reviewer.
 
-### 1. User
-Represents system administrators and agency agents.
-* `id`: String (UUID), Primary Key.
-* `name`: String, optional.
-* `email`: String, Unique index.
-* `passwordHash`: String.
-* `role`: Enum (ADMIN, AGENT).
-* `createdAt`: DateTime.
-* `updatedAt`: DateTime.
+## 2. Relational Models
 
-### 2. Lead
-Represents clients or prospective clients captured via contact submissions or newsletters.
-* `id`: String (UUID), Primary Key.
-* `name`: String.
-* `email`: String, Unique index.
-* `phone`: String, optional.
-* `company`: String, optional.
-* `status`: Enum (NEW, CONTACTED, QUALIFIED, LOST). Default: `NEW`.
-* `createdAt`: DateTime.
-* `updatedAt`: DateTime.
+### Users (`users`)
+Agency agents and administrators.
+* `id` (UUID, PK)
+* `name` (String, nullable)
+* `email` (String, unique index)
+* `passwordHash` (String)
+* `role` (Role Enum)
+* `createdAt` / `updatedAt` (DateTime)
 
-### 3. ContactSubmission
-Represents direct messages submitted via public forms.
-* `id`: String (UUID), Primary Key.
-* `leadId`: String, Foreign Key referencing `Lead.id` (cascade delete).
-* `subject`: String.
-* `message`: String.
-* `createdAt`: DateTime.
+### Leads (`leads`)
+Prospective clients.
+* `id` (UUID, PK)
+* `name` (String)
+* `email` (String, unique index)
+* `phone` (String, nullable)
+* `company` (String, nullable)
+* `status` (LeadStatus Enum: `NEW`, `CONTACTED`, `QUALIFIED`, `LOST`)
+* `createdAt` / `updatedAt` (DateTime)
 
-### 4. ActivityLog
-Auditing ledger for administrative actions, API interactions, and system events.
-* `id`: String (UUID), Primary Key.
-* `userId`: String, optional, Foreign Key referencing `User.id`.
-* `action`: String (e.g., `CONTACT_FORM_SUBMISSION`, `USER_LOGIN`).
-* `details`: JSON, stores parameters/audit trail.
-* `ipAddress`: String, optional.
-* `userAgent`: String, optional.
-* `createdAt`: DateTime.
+### Contact Submissions (`contact_submissions`)
+Form messages received from visitor inquiry pages.
+* `id` (UUID, PK)
+* `leadId` (UUID, FK, Cascade Delete)
+* `subject` (String)
+* `message` (String)
+* `createdAt` (DateTime)
+
+### Activity Logs (`activity_logs`)
+System audit ledger.
+* `id` (UUID, PK)
+* `userId` (UUID, FK, Nullable)
+* `action` (String)
+* `details` (JSON)
+* `ipAddress` (String, nullable)
+* `userAgent` (String, nullable)
+* `createdAt` (DateTime)
+
+## 3. Database Seeding (`prisma/seed.js`)
+Running `npm run seed` will execute a script that inserts a default Super Admin user (`superadmin@arcylmedia.com` with default password `SuperAdminSecurePassword2026!`) hashed using `bcryptjs`.

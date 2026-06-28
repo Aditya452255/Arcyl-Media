@@ -1,0 +1,6 @@
+export const LEAD_STATUS = {
+  NEW: "NEW",
+  CONTACTED: "CONTACTED",
+  QUALIFIED: "QUALIFIED",
+  LOST: "LOST",
+};

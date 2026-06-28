@@ -1,8 +1,9 @@
 import { PrismaClient } from "@prisma/client";
+import { env } from "./env";
 
 let prisma;
 
-if (process.env.NODE_ENV === "production") {
+if (env.NODE_ENV === "production") {
   prisma = new PrismaClient();
 } else {
   // Prevent multiple instances of Prisma Client in development hot-reloading

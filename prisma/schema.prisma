@@ -11,8 +11,13 @@ datasource db {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
-  AGENT
+  MANAGER
+  DEVELOPER
+  DESIGNER
+  SALES
+  CLIENT
 }
 
 enum LeadStatus {

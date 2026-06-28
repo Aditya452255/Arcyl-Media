@@ -3,6 +3,10 @@ import { ContactRepository } from "../repositories/contactRepository";
 import { ActivityLogRepository } from "../repositories/activityLogRepository";
 import resend from "../config/resend";
 import logger from "../utils/logger";
+import { env } from "../config/env";
+import { LEAD_STATUS } from "../constants/status";
+import { getThankYouEmailTemplate } from "../emails/thankYouEmail";
+import { getNewLeadNotificationTemplate } from "../emails/newLeadNotification";
 
 export class ContactService {
   /**
@@ -15,13 +19,14 @@ export class ContactService {
   static async handleContactSubmission(data, ipAddress, userAgent) {
     const { name, email, phone, subject, message } = data;
 
-    // 1. Find or create Lead
+    // 1. Find or create Lead (using status constant)
     let lead = await LeadRepository.findByEmail(email);
     if (!lead) {
       lead = await LeadRepository.create({
         name,
         email,
         phone,
+        status: LEAD_STATUS.NEW,
       });
       logger.info({ leadId: lead.id }, "New lead created");
     } else {
@@ -65,29 +70,20 @@ export class ContactService {
   }
 
   /**
-   * Dispatch email notifications to admin and thank-you email to visitor.
+   * Dispatch email notifications using compiled email templates.
    */
   static async sendEmails(lead, submission) {
-    const adminEmail = process.env.ADMIN_EMAIL || "arcylmedia@gmail.com";
-    const emailFrom = process.env.EMAIL_FROM || "Arcyl Media <onboarding@resend.dev>";
+    const adminEmail = env.ADMIN_EMAIL;
+    const emailFrom = env.EMAIL_FROM;
 
     // Admin Notification
     try {
+      const template = getNewLeadNotificationTemplate(lead, submission);
       await resend.emails.send({
         from: emailFrom,
         to: adminEmail,
-        subject: `[New Lead Inquiry] ${submission.subject}`,
-        html: `
-          <div style="font-family: sans-serif; line-height: 1.5; color: #333;">
-            <h2>New Website Inquiry</h2>
-            <p><strong>Name:</strong> ${lead.name}</p>
-            <p><strong>Email:</strong> ${lead.email}</p>
-            <p><strong>Phone:</strong> ${lead.phone || "N/A"}</p>
-            <p><strong>Subject:</strong> ${submission.subject}</p>
-            <p><strong>Message:</strong></p>
-            <div style="white-space: pre-wrap; background-color: #f5f5f5; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">${submission.message}</div>
-          </div>
-        `,
+        subject: template.subject,
+        html: template.html,
       });
       logger.info({ recipient: adminEmail }, "Admin notification email sent successfully");
     } catch (err) {
@@ -96,20 +92,12 @@ export class ContactService {
 
     // Visitor Thank-You Email
     try {
+      const template = getThankYouEmailTemplate(lead.name, submission.subject);
       await resend.emails.send({
         from: emailFrom,
         to: lead.email,
-        subject: `Thank you for contacting Arcyl Media!`,
-        html: `
-          <div style="font-family: sans-serif; line-height: 1.5; color: #333;">
-            <p>Hi ${lead.name},</p>
-            <p>Thank you for reaching out to Arcyl Media! We have received your inquiry regarding <strong>"${submission.subject}"</strong>.</p>
-            <p>Our team is currently reviewing your details and we will get back to you within 24 hours.</p>
-            <br/>
-            <p>Best regards,</p>
-            <p><strong>The Arcyl Media Team</strong></p>
-          </div>
-        `,
+        subject: template.subject,
+        html: template.html,
       });
       logger.info({ recipient: lead.email }, "Visitor thank-you email sent successfully");
     } catch (err) {

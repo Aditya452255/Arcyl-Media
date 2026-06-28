@@ -1,4 +1,17 @@
+import { requestContext } from "./context";
+
 export class ApiResponse {
+  /**
+   * Helper to retrieve request metadata from the active context
+   */
+  static getMeta() {
+    const store = requestContext.getStore();
+    return {
+      requestId: store?.requestId || null,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
   static success(message, data = null, statusCode = 200) {
     return Response.json(
       {
@@ -6,6 +19,7 @@ export class ApiResponse {
         message,
         data,
         error: null,
+        meta: this.getMeta(),
       },
       { status: statusCode }
     );
@@ -21,6 +35,7 @@ export class ApiResponse {
           code: errorCode,
           details,
         },
+        meta: this.getMeta(),
       },
       { status: statusCode }
     );

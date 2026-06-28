@@ -1,29 +1,29 @@
-# Arcyl Media Platform - Product Roadmap
+# Arcyl Media Platform - Project Roadmap
 
-This document outlines the high-level roadmap for the Arcyl Media platform.
+## Phase 1 & 1.5 - Core Foundation & Hardening (Completed)
+* Next.js 15 App Router & React 19 Upgrade.
+* Prisma PostgreSQL schema with User, Lead, ContactSubmission, and ActivityLog models.
+* Configured Resend email, Cloudinary storage, Zod validations, and Pino logger.
+* Strict startup env validation.
+* Request context tracking with `AsyncLocalStorage` and logging mixins.
+* Centralized API response format and masked server error middleware.
+* Decoupled email HTML templates.
+* Endpoint rate limiting (5 requests / 10 minutes for Contact API).
+* Interactive Swagger API docs served at `/api/docs`.
 
-## Phase 1: Foundation & Core Lead Capture (Current)
-* Upgrade to Next.js 15 App Router & React 19.
-* Configure Prisma ORM with PostgreSQL.
-* Set up foundational utilities: Pino logger, standardized API responses, centralized error handling.
-* Implement repository and service layer architecture.
-* Integrate Zod validation for client-submitted data.
-* Integrate Resend for administrative and visitor email notifications.
-* Set up Cloudinary for future asset/image uploads.
-* Build `/api/contact` endpoint to capture visitor inquiries.
+## Phase 2 - CRM, Admin Dashboard & Authentication (Next)
+* Hashed user session logins using bcryptjs and JSON Web Tokens (JWT).
+* Dynamic administration panel for managing captured leads.
+* Client pipeline dashboard (status progression: `NEW` -> `CONTACTED` -> `QUALIFIED` -> `LOST`).
+* Complete audit activity ledger UI filterable by users, routes, and dates.
+* Cloudinary file-sharing catalog system for agency assets.
 
-## Phase 2: User Authentication, Agency Dashboard & CRM
-* Secure user authentication using JWT and bcrypt hashing.
-* Interactive administration dashboard for leads management.
-* Implement complete CRM module: lead pipelines, status trackers, and contact interaction histories.
-* Role-Based Access Control (RBAC): Admin, Agent, Visitor.
+## Phase 3 - Client Portal & Projects
+* client workspace modules.
+* Document collaboration, milestone tracking, and task lists.
+* Stripe billing, subscriptions, and custom agency invoices.
 
-## Phase 3: Project Management & Client Portal
-* Create client workspaces and portals.
-* Document collaboration, contract signature flows, and milestone tracking.
-* Invoicing and Stripe payment integration.
-
-## Phase 4: AI Agency Engine & Modules
-* Integrated AI content generation suite (blog posts, social copies).
-* Automated email campaigns powered by AI client analysis.
-* AI chat support agent trained on agency assets.
+## Phase 4 - AI Agency Automation & SaaS Multi-tenancy
+* Content generation AI agents.
+* Automated newsletters and email marketing analytics.
+* Multi-tenant data isolation and dynamic subdomain mappings.
