@@ -10,21 +10,53 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  SUPER_ADMIN
-  ADMIN
-  MANAGER
-  DEVELOPER
-  DESIGNER
-  SALES
-  CLIENT
-}
-
 enum LeadStatus {
   NEW
-  CONTACTED
   QUALIFIED
+  PROPOSAL_SENT
+  NEGOTIATION
+  WON
   LOST
+  SPAM
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  name        String           @unique // e.g. Lead.Read
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
 }
 
 model User {
@@ -32,10 +64,26 @@ model User {
   name         String?
   email        String        @unique
   passwordHash String
-  role         Role          @default(ADMIN)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   activityLogs ActivityLog[]
+  roles        UserRole[]
+  mediaAssets  MediaAsset[]
+  assignedLeads Lead[]       @relation("LeadAssignee")
+  leadNotes    LeadNote[]
+
+  // CMS edits tracking relations
+  heroEdits        Hero[]
+  aboutEdits       About[]
+  serviceEdits     Service[]
+  portfolioEdits   Portfolio[]
+  testimonialEdits Testimonial[]
+  faqEdits         FAQ[]
+  techEdits        Technology[]
+  teamEdits        TeamMember[]
+  settingsEdits    SiteSetting[]
+  socialEdits      SocialLink[]
+  footerEdits      Footer[]
 
   @@map("users")
 }
@@ -47,11 +95,27 @@ model Lead {
   phone       String?
   company     String?
   status      LeadStatus          @default(NEW)
+  isArchived  Boolean             @default(false)
+  assigneeId  String?
+  assignee    User?               @relation("LeadAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  notes       LeadNote[]
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
   submissions ContactSubmission[]
 
   @@map("leads")
+}
+
+model LeadNote {
+  id        String   @id @default(uuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@map("lead_notes")
 }
 
 model ContactSubmission {
@@ -76,4 +140,235 @@ model ActivityLog {
   createdAt DateTime @default(now())
 
   @@map("activity_logs")
+}
+
+model MediaAsset {
+  id           String   @id @default(uuid())
+  url          String
+  publicId     String   @unique
+  fileType     String   // image, video, raw
+  mimeType     String
+  size         Int
+  folder       String?
+  altText      String?
+  uploadedById String?
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("media_assets")
+}
+
+// CMS Models
+
+model Hero {
+  id              String   @id @default(uuid())
+  title           String
+  subtitle        String?
+  ctaText         String?
+  ctaLink         String?
+  backgroundImage String?
+  isPublished     Boolean  @default(false)
+  isDeleted       Boolean  @default(false)
+  displayOrder    Int      @default(0)
+  slug            String?  @unique
+  seoTitle        String?
+  seoDescription  String?
+  seoKeywords     String?
+  updatedById     String?
+  updatedBy       User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("cms_hero")
+}
+
+model About {
+  id             String   @id @default(uuid())
+  title          String
+  content        String
+  image          String?
+  isPublished    Boolean  @default(false)
+  isDeleted      Boolean  @default(false)
+  displayOrder   Int      @default(0)
+  slug           String?  @unique
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  updatedById    String?
+  updatedBy      User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("cms_about")
+}
+
+model Service {
+  id             String   @id @default(uuid())
+  title          String
+  description    String
+  icon           String?
+  isPublished    Boolean  @default(false)
+  isDeleted      Boolean  @default(false)
+  displayOrder   Int      @default(0)
+  slug           String   @unique
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  updatedById    String?
+  updatedBy      User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("cms_services")
+}
+
+model Portfolio {
+  id             String   @id @default(uuid())
+  title          String
+  description    String
+  image          String?
+  category       String?
+  clientName     String?
+  projectDate    String?
+  ctaLink        String?
+  isPublished    Boolean  @default(false)
+  isDeleted      Boolean  @default(false)
+  displayOrder   Int      @default(0)
+  slug           String   @unique
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  updatedById    String?
+  updatedBy      User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("cms_portfolio")
+}
+
+model Testimonial {
+  id           String   @id @default(uuid())
+  author       String
+  company      String?
+  role         String?
+  content      String
+  image        String?
+  rating       Int      @default(5)
+  isPublished  Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
+  displayOrder Int      @default(0)
+  slug         String?  @unique
+  updatedById  String?
+  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("cms_testimonials")
+}
+
+model FAQ {
+  id           String   @id @default(uuid())
+  question     String
+  answer       String
+  isPublished  Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
+  displayOrder Int      @default(0)
+  slug         String?  @unique
+  updatedById  String?
+  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("cms_faqs")
+}
+
+model Technology {
+  id           String   @id @default(uuid())
+  name         String
+  category     String?
+  logo         String?
+  isPublished  Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
+  displayOrder Int      @default(0)
+  slug         String?  @unique
+  updatedById  String?
+  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("cms_technologies")
+}
+
+model TeamMember {
+  id           String   @id @default(uuid())
+  name         String
+  role         String
+  bio          String?
+  image        String?
+  socialLinks  Json?
+  isPublished  Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
+  displayOrder Int      @default(0)
+  slug         String?  @unique
+  updatedById  String?
+  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("cms_team_members")
+}
+
+model SiteSetting {
+  id                String   @id @default(uuid())
+  logo              String?
+  companyName       String
+  email             String
+  phone             String?
+  address           String?
+  businessHours     Json?
+  socialLinks       Json?
+  googleAnalyticsId String?
+  metaTitle         String?
+  metaDescription   String?
+  openGraphImage    String?
+  favicon           String?
+  themeSettings     Json?
+  updatedById       String?
+  updatedBy         User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("cms_site_settings")
+}
+
+model SocialLink {
+  id           String   @id @default(uuid())
+  platform     String
+  url          String
+  isPublished  Boolean  @default(false)
+  isDeleted    Boolean  @default(false)
+  displayOrder Int      @default(0)
+  slug         String?  @unique
+  updatedById  String?
+  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("cms_social_links")
+}
+
+model Footer {
+  id            String   @id @default(uuid())
+  copyrightText String
+  links         Json?
+  isPublished   Boolean  @default(false)
+  isDeleted     Boolean  @default(false)
+  slug          String?  @unique
+  updatedById   String?
+  updatedBy     User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("cms_footer")
 }

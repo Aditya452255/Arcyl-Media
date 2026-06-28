@@ -50,6 +50,7 @@ export function withErrorHandler(handler) {
       ip,
       browser,
       os,
+      userAgent: ua,
       route,
       method,
       statusCode: 200,

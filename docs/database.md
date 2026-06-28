@@ -1,55 +1,81 @@
-# Arcyl Media Platform - Database & Relational Schema
+# Arcyl Media Platform - Database Relational Schemas
 
-This document details the Prisma schema, default user roles, and database seed details.
+This document lists database models, pipeline enums, and RBAC permissions matrices.
 
-## 1. System Roles (Enum: `Role`)
-The system supports the following user role classifications:
-* `SUPER_ADMIN`: Root privileges. Default user.
-* `ADMIN`: Administrative dashboard manager.
-* `MANAGER`: Project/Agent supervisor.
-* `DEVELOPER`: Production engineer.
-* `DESIGNER`: Visual asset creator.
-* `SALES`: Lead qualification representative.
-* `CLIENT`: External portal reviewer.
+## 1. Pipeline Status (Enum: `LeadStatus`)
+* `NEW`: Freshly captured lead.
+* `QUALIFIED`: Verified and qualified.
+* `PROPOSAL_SENT`: Quote or proposal submitted.
+* `NEGOTIATION`: Offer review phase.
+* `WON`: Won client.
+* `LOST`: Lost inquiry.
+* `SPAM`: Spammed submissions.
 
-## 2. Relational Models
+## 2. Relational Models (RBAC)
 
-### Users (`users`)
-Agency agents and administrators.
+### Roles (`roles`)
 * `id` (UUID, PK)
-* `name` (String, nullable)
-* `email` (String, unique index)
-* `passwordHash` (String)
-* `role` (Role Enum)
-* `createdAt` / `updatedAt` (DateTime)
+* `name` (String, Unique)
+* `description` (String, Nullable)
+
+### Permissions (`permissions`)
+* `id` (UUID, PK)
+* `name` (String, Unique) - e.g. `Lead.Read`
+* `description` (String, Nullable)
+
+### RolePermissions (`role_permissions`)
+* `roleId` (UUID, FK, Cascade Delete)
+* `permissionId` (UUID, FK, Cascade Delete)
+* Primary Key: Composite (`roleId`, `permissionId`)
+
+### UserRoles (`user_roles`)
+* `userId` (UUID, FK, Cascade Delete)
+* `roleId` (UUID, FK, Cascade Delete)
+* Primary Key: Composite (`userId`, `roleId`)
+
+---
+
+## 3. CRM Models
 
 ### Leads (`leads`)
-Prospective clients.
 * `id` (UUID, PK)
-* `name` (String)
-* `email` (String, unique index)
-* `phone` (String, nullable)
-* `company` (String, nullable)
-* `status` (LeadStatus Enum: `NEW`, `CONTACTED`, `QUALIFIED`, `LOST`)
-* `createdAt` / `updatedAt` (DateTime)
+* `name` / `email` / `phone` / `company`
+* `status` (LeadStatus)
+* `isArchived` (Boolean)
+* `assigneeId` (UUID, FK, SetNull) - links to agent `User`
 
-### Contact Submissions (`contact_submissions`)
-Form messages received from visitor inquiry pages.
+### LeadNotes (`lead_notes`)
 * `id` (UUID, PK)
 * `leadId` (UUID, FK, Cascade Delete)
-* `subject` (String)
-* `message` (String)
+* `authorId` (UUID, FK, Cascade Delete) - links to `User`
+* `content` (Text)
 * `createdAt` (DateTime)
 
-### Activity Logs (`activity_logs`)
-System audit ledger.
+---
+
+## 4. Media Catalog (`media_assets`)
 * `id` (UUID, PK)
-* `userId` (UUID, FK, Nullable)
-* `action` (String)
-* `details` (JSON)
-* `ipAddress` (String, nullable)
-* `userAgent` (String, nullable)
-* `createdAt` (DateTime)
+* `url` (String) - secure Cloudinary asset URL
+* `publicId` (String, Unique) - Cloudinary storage key
+* `fileType` (String) - image, video, raw
+* `mimeType` / `size` / `folder` / `altText`
+* `uploadedById` (UUID, FK, SetNull) - links to `User`
 
-## 3. Database Seeding (`prisma/seed.js`)
-Running `npm run seed` will execute a script that inserts a default Super Admin user (`superadmin@arcylmedia.com` with default password `SuperAdminSecurePassword2026!`) hashed using `bcryptjs`.
+---
+
+## 5. Dynamic CMS Models
+
+### Heros (`cms_hero`)
+* `id` (UUID, PK)
+* `title` / `subtitle` / `ctaText` / `ctaLink` / `backgroundImage`
+* `isPublished` / `isDeleted` / `displayOrder` / `slug`
+* `seoTitle` / `seoDescription` / `seoKeywords`
+* `updatedById` (UUID, FK, SetNull)
+
+### Services (`cms_services`)
+* `id` / `title` / `description` / `icon` / `slug` / `displayOrder`
+* `isPublished` / `isDeleted`
+* `seoTitle` / `seoDescription` / `seoKeywords`
+* `updatedById` (UUID, FK, SetNull)
+
+*(Note: Other CMS tables: `cms_about`, `cms_portfolio`, `cms_testimonials`, `cms_faqs`, `cms_technologies`, `cms_team_members`, `cms_site_settings`, `cms_social_links`, `cms_footer` share this unified tracking metadata pattern).*

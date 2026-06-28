@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Instagram, Linkedin, Phone, Mail, MapPin } from "lucide-react";
 import { navLinks, siteConfig } from "@/lib/constants";
 
 export default function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <footer className="relative border-t border-glass-border bg-dark-50/80 backdrop-blur-xl overflow-hidden">
