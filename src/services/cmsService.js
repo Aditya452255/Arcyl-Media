@@ -1,6 +1,7 @@
 import { CmsRepository } from "../repositories/cmsRepository";
 import { AuditService } from "./auditService";
 import { NotFoundError, ValidationError } from "../utils/errors";
+import { CacheManager } from "../utils/cache";
 
 export class CmsService {
   /**
@@ -46,6 +47,7 @@ export class CmsService {
 
     const item = await CmsRepository.create(modelName, payload);
     await AuditService.log("CMS_CREATE", { modelName, resourceId: item.id }, userId);
+    CacheManager.purgeCMSCache();
     return item;
   }
 
@@ -81,6 +83,7 @@ export class CmsService {
       },
       userId
     );
+    CacheManager.purgeCMSCache();
     return item;
   }
 
@@ -102,6 +105,47 @@ export class CmsService {
     }
 
     await AuditService.log("CMS_DELETE", { modelName, resourceId: id }, userId);
+    CacheManager.purgeCMSCache();
     return item;
+  }
+
+  /**
+   * Clones a CMS content block as draft with a Copy title flag and unique slug
+   */
+  static async duplicateItem(modelName, id, userId) {
+    const existing = await CmsRepository.findById(modelName, id);
+    if (!existing) {
+      throw new NotFoundError(`${modelName} item not found`);
+    }
+
+    const clone = { ...existing };
+    delete clone.id;
+    delete clone.createdAt;
+    delete clone.updatedAt;
+    delete clone.updatedBy;
+
+    if (clone.title) clone.title = `${clone.title} - Copy`;
+    if (clone.name) clone.name = `${clone.name} - Copy`;
+    if (clone.platform) clone.platform = `${clone.platform} - Copy`;
+    if (clone.question) clone.question = `${clone.question} - Copy`;
+    if (clone.copyrightText) clone.copyrightText = `${clone.copyrightText} - Copy`;
+
+    if (clone.slug) {
+      clone.slug = `${clone.slug}-copy-${Math.random().toString(36).slice(2, 6)}`;
+    }
+
+    // Reset parameters to default drafts
+    clone.isPublished = false;
+    clone.displayOrder = (clone.displayOrder ?? 0) + 1;
+    clone.updatedById = userId;
+
+    const newItem = await CmsRepository.create(modelName, clone);
+    await AuditService.log(
+      "CMS_DUPLICATE",
+      { modelName, sourceId: id, targetId: newItem.id },
+      userId
+    );
+    CacheManager.purgeCMSCache();
+    return newItem;
   }
 }

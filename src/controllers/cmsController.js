@@ -85,4 +85,13 @@ export class CmsController {
     await CmsService.deleteItem(modelName, id, userId);
     return ApiResponse.success(`${modelName} item deleted successfully`, null, 200);
   }
+
+  /**
+   * POST /api/admin/cms/[module]/[id]/duplicate
+   */
+  static async duplicateItem(req, modelName, id) {
+    const userId = req.user?.id;
+    const item = await CmsService.duplicateItem(modelName, id, userId);
+    return ApiResponse.success(`${modelName} item duplicated successfully`, item, 201);
+  }
 }

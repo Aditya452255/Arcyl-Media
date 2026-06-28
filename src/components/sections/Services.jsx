@@ -25,9 +25,11 @@ const iconMap = {
   Zap,
 };
 
-export default function Services() {
+export default function Services({ data }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const serviceList = data && data.length > 0 ? data : services;
 
   return (
     <section ref={ref} className="section-spacing relative" id="services">
@@ -52,8 +54,8 @@ export default function Services() {
 
         {/* Services grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {services.map((service, i) => {
-            const IconComponent = iconMap[service.icon];
+          {serviceList.map((service, i) => {
+            const IconComponent = iconMap[service.icon] || Cpu;
             return (
               <motion.div
                 key={service.title}

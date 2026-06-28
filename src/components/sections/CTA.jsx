@@ -6,9 +6,11 @@ import { motion, useInView } from "framer-motion";
 import { Instagram } from "lucide-react";
 import { siteConfig } from "@/lib/constants";
 
-export default function CTA() {
+export default function CTA({ settings }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const instagramUrl = settings?.socialLinks?.instagram || siteConfig.social.instagram;
 
   return (
     <section ref={ref} className="section-spacing relative" id="cta">
@@ -36,7 +38,7 @@ export default function CTA() {
               className="flex justify-center mb-8"
             >
               <motion.a
-                href={siteConfig.social.instagram}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Arcyl Media Instagram"

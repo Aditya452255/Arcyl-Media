@@ -7,13 +7,22 @@ import { motion } from "framer-motion";
 import { Instagram, Linkedin, Phone, Mail, MapPin } from "lucide-react";
 import { navLinks, siteConfig } from "@/lib/constants";
 
-export default function Footer() {
+export default function Footer({ settings }) {
   const pathname = usePathname();
   const currentYear = new Date().getFullYear();
 
   if (pathname?.startsWith("/admin")) {
     return null;
   }
+
+  const logoSrc = settings?.logo || "/logo-a.png";
+  const description = settings?.metaDescription || siteConfig.description;
+  const instagramUrl = settings?.socialLinks?.instagram || siteConfig.social.instagram;
+  const linkedinUrl = settings?.socialLinks?.linkedin || siteConfig.social.linkedin;
+  const phoneVal = settings?.phone || siteConfig.phone;
+  const emailVal = settings?.email || siteConfig.email;
+  const addressVal = settings?.address || siteConfig.location;
+  const companyName = settings?.companyName || siteConfig.name;
 
   return (
     <footer className="relative border-t border-glass-border bg-dark-50/80 backdrop-blur-xl overflow-hidden">
@@ -29,7 +38,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center group" aria-label="Arcyl Media Home">
               <div className="relative h-10 w-auto min-w-[160px] sm:min-w-[180px] flex items-center overflow-hidden group-hover:scale-105 transition-transform duration-300">
                 <Image
-                  src="/logo-a.png"
+                  src={logoSrc}
                   alt="Arcyl Media Logo"
                   width={200}
                   height={45}
@@ -38,12 +47,12 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-muted max-w-sm text-base leading-relaxed">
-              {siteConfig.description}
+              {description}
             </p>
             {/* Social Links */}
             <div className="flex items-center gap-4 pt-2">
               <a
-                href={siteConfig.social.instagram}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-11 h-11 rounded-xl bg-dark-200 border border-glass-border flex items-center justify-center text-muted hover:text-white hover:border-primary/50 hover:bg-primary/10 hover:shadow-glow transition-all duration-300 group"
@@ -52,7 +61,7 @@ export default function Footer() {
                 <Instagram size={20} className="group-hover:scale-110 transition-transform duration-300 text-primary" />
               </a>
               <a
-                href={siteConfig.social.linkedin}
+                href={linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-11 h-11 rounded-xl bg-dark-200 border border-glass-border flex items-center justify-center text-muted hover:text-white hover:border-primary/50 hover:bg-primary/10 hover:shadow-glow transition-all duration-300 group"
@@ -84,28 +93,28 @@ export default function Footer() {
             <h4 className="text-white font-heading text-lg tracking-wide">Contact Us</h4>
             <div className="flex flex-col gap-4 text-base text-muted">
               <a
-                href={`tel:${siteConfig.phone}`}
+                href={`tel:${phoneVal}`}
                 className="flex items-center gap-3 hover:text-primary transition-colors duration-300 group"
               >
                 <div className="w-9 h-9 rounded-lg bg-dark-200 border border-glass-border flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
                   <Phone size={16} className="text-primary" />
                 </div>
-                <span>{siteConfig.phone}</span>
+                <span>{phoneVal}</span>
               </a>
               <a
-                href={`mailto:${siteConfig.email}`}
+                href={`mailto:${emailVal}`}
                 className="flex items-center gap-3 hover:text-primary transition-colors duration-300 group"
               >
                 <div className="w-9 h-9 rounded-lg bg-dark-200 border border-glass-border flex items-center justify-center group-hover:border-primary/50 group-hover:bg-primary/10 transition-colors">
                   <Mail size={16} className="text-primary" />
                 </div>
-                <span>{siteConfig.email}</span>
+                <span>{emailVal}</span>
               </a>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-dark-200 border border-glass-border flex items-center justify-center">
                   <MapPin size={16} className="text-primary" />
                 </div>
-                <span>{siteConfig.location}</span>
+                <span>{addressVal}</span>
               </div>
             </div>
           </div>
@@ -123,7 +132,7 @@ export default function Footer() {
             </Link>
           </div>
           <p className="text-sm text-muted">
-            © {currentYear} {siteConfig.name}. All rights reserved.
+            © {currentYear} {companyName}. All rights reserved.
           </p>
         </div>
       </div>

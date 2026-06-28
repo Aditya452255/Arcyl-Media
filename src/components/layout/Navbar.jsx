@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
 import { navLinks, siteConfig } from "@/lib/constants";
 
-export default function Navbar() {
+export default function Navbar({ settings }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -29,6 +29,8 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
+  const logoSrc = settings?.logo || "/logo-a.png";
+
   return (
     <>
       <motion.header
@@ -43,11 +45,10 @@ export default function Navbar() {
       >
         <div className="section-container flex items-center justify-between">
           {/* Logo */}
-          {/* Logo */}
           <Link href="/" className="flex items-center group" aria-label="Arcyl Media Home">
             <div className="relative h-8 w-auto min-w-[140px] sm:min-w-[160px] flex items-center overflow-hidden group-hover:scale-105 transition-transform duration-300">
               <Image
-                src="/logo-a.png"
+                src={logoSrc}
                 alt="Arcyl Media Logo"
                 width={180}
                 height={40}

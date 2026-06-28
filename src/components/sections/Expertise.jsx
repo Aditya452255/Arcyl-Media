@@ -23,9 +23,15 @@ const iconMap = {
   MessageCircle,
 };
 
-export default function Expertise() {
+export default function Expertise({ data }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const areasList = data && data.length > 0 ? data.map(item => ({
+    title: item.title,
+    description: item.content,
+    icon: item.image || "Cpu"
+  })) : expertiseAreas;
 
   return (
     <section ref={ref} className="section-spacing relative" id="expertise">
@@ -49,8 +55,8 @@ export default function Expertise() {
 
         {/* Expertise cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {expertiseAreas.map((area, i) => {
-            const IconComponent = iconMap[area.icon];
+          {areasList.map((area, i) => {
+            const IconComponent = iconMap[area.icon] || Cpu;
             return (
               <motion.div
                 key={area.title}

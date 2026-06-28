@@ -16,14 +16,19 @@ const starPositions = Array.from({ length: 40 }).map((_, i) => ({
   duration: 3 + (i % 4),
 }));
 
-export default function Hero() {
+export default function Hero({ data }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const headlineWords = ["Design.", "Brand.", "Grow."];
+  const heroItem = data?.[0] || {};
+  const headlineWords = (heroItem.title || "Design. Brand. Grow.").split(" ");
+  const subtitle = heroItem.subtitle || "Unlock sustainable growth with more visibility, more customers, and more revenue.";
+  const ctaText = heroItem.ctaText || "Start Your Project";
+  const ctaLink = heroItem.ctaLink || "/contact";
+  const backgroundImage = heroItem.backgroundImage || "/logo-hero.png";
 
   return (
     <section className="relative min-h-screen flex flex-col justify-between overflow-hidden pt-28 pb-16 bg-dark">
@@ -68,7 +73,7 @@ export default function Hero() {
             {/* Floating Logo Asset */}
             <div className="relative w-full h-full animate-float flex items-center justify-center z-10">
               <Image
-                src="/logo-hero.png"
+                src={backgroundImage}
                 alt="Arcyl Media Premium A Logo"
                 width={500}
                 height={500}
@@ -108,7 +113,7 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.6, ease: [0.2, 0.65, 0.3, 1] }}
             className="text-muted text-lg sm:text-xl leading-relaxed max-w-2xl mb-10"
           >
-            Unlock sustainable growth with more visibility, more customers, and more revenue.
+            {subtitle}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -118,13 +123,13 @@ export default function Hero() {
             transition={{ duration: 0.8, delay: 0.8, ease: [0.2, 0.65, 0.3, 1] }}
             className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full sm:w-auto"
           >
-            <Link href="/contact" className="w-full sm:w-auto">
+            <Link href={ctaLink} className="w-full sm:w-auto">
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 className="w-full sm:w-auto px-8 py-4 rounded-full bg-white text-dark font-medium text-base shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] transition-all duration-300 flex items-center justify-center gap-3 group"
               >
-                <span>Start Your Project</span>
+                <span>{ctaText}</span>
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300 text-dark" />
               </motion.button>
             </Link>

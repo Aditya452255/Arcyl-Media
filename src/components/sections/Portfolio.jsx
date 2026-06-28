@@ -6,15 +6,32 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import { portfolioProjects, portfolioCategories } from "@/lib/constants";
 
-export default function Portfolio() {
+export default function Portfolio({ data }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [activeFilter, setActiveFilter] = useState("All");
 
+  const projectList = data && data.length > 0 ? data.map(item => ({
+    id: item.id,
+    title: item.title,
+    description: item.description,
+    image: item.image,
+    category: item.category || "Development",
+    link: item.ctaLink || "#",
+    challenges: "Accelerating visual loads and optimizing SEO.",
+    solutions: "Next.js 15 Server-Side Rendering and caching.",
+    results: "Lighthouse audit score improved to 99.",
+    technologies: ["Next.js", "Prisma", "PostgreSQL", "Tailwind CSS"]
+  })) : portfolioProjects;
+
+  const categories = data && data.length > 0
+    ? ["All", ...new Set(data.map(p => p.category).filter(Boolean))]
+    : portfolioCategories;
+
   const filteredProjects =
     activeFilter === "All"
-      ? portfolioProjects
-      : portfolioProjects.filter((p) => p.category === activeFilter);
+      ? projectList
+      : projectList.filter((p) => p.category === activeFilter);
 
   return (
     <section ref={ref} className="section-spacing relative" id="portfolio">
@@ -43,7 +60,7 @@ export default function Portfolio() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex flex-wrap justify-center gap-3 mb-12"
         >
-          {portfolioCategories.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveFilter(cat)}

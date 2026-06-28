@@ -5,10 +5,12 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 import { faqItems } from "@/lib/constants";
 
-export default function FAQ() {
+export default function FAQ({ data }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [openIndex, setOpenIndex] = useState(null);
+
+  const itemsList = data && data.length > 0 ? data : faqItems;
 
   return (
     <section ref={ref} className="section-spacing relative" id="faq">
@@ -31,7 +33,7 @@ export default function FAQ() {
 
         {/* FAQ items */}
         <div className="space-y-4">
-          {faqItems.map((item, i) => (
+          {itemsList.map((item, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}

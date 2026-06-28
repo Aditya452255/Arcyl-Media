@@ -162,159 +162,167 @@ model MediaAsset {
 // CMS Models
 
 model Hero {
-  id              String   @id @default(uuid())
-  title           String
-  subtitle        String?
-  ctaText         String?
-  ctaLink         String?
-  backgroundImage String?
-  isPublished     Boolean  @default(false)
-  isDeleted       Boolean  @default(false)
-  displayOrder    Int      @default(0)
-  slug            String?  @unique
-  seoTitle        String?
-  seoDescription  String?
-  seoKeywords     String?
-  updatedById     String?
-  updatedBy       User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  title              String
+  subtitle           String?
+  ctaText            String?
+  ctaLink            String?
+  backgroundImage    String?
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String?   @unique
+  seoTitle           String?
+  seoDescription     String?
+  seoKeywords        String?
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_hero")
 }
 
 model About {
-  id             String   @id @default(uuid())
-  title          String
-  content        String
-  image          String?
-  isPublished    Boolean  @default(false)
-  isDeleted      Boolean  @default(false)
-  displayOrder   Int      @default(0)
-  slug           String?  @unique
-  seoTitle       String?
-  seoDescription String?
-  seoKeywords    String?
-  updatedById    String?
-  updatedBy      User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  title              String
+  content            String
+  image              String?
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String?   @unique
+  seoTitle           String?
+  seoDescription     String?
+  seoKeywords        String?
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_about")
 }
 
 model Service {
-  id             String   @id @default(uuid())
-  title          String
-  description    String
-  icon           String?
-  isPublished    Boolean  @default(false)
-  isDeleted      Boolean  @default(false)
-  displayOrder   Int      @default(0)
-  slug           String   @unique
-  seoTitle       String?
-  seoDescription String?
-  seoKeywords    String?
-  updatedById    String?
-  updatedBy      User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  title              String
+  description        String
+  icon               String?
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String    @unique
+  seoTitle           String?
+  seoDescription     String?
+  seoKeywords        String?
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_services")
 }
 
 model Portfolio {
-  id             String   @id @default(uuid())
-  title          String
-  description    String
-  image          String?
-  category       String?
-  clientName     String?
-  projectDate    String?
-  ctaLink        String?
-  isPublished    Boolean  @default(false)
-  isDeleted      Boolean  @default(false)
-  displayOrder   Int      @default(0)
-  slug           String   @unique
-  seoTitle       String?
-  seoDescription String?
-  seoKeywords    String?
-  updatedById    String?
-  updatedBy      User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  title              String
+  description        String
+  image              String?
+  category           String?
+  clientName         String?
+  projectDate        String?
+  ctaLink            String?
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String    @unique
+  seoTitle           String?
+  seoDescription     String?
+  seoKeywords        String?
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_portfolio")
 }
 
 model Testimonial {
-  id           String   @id @default(uuid())
-  author       String
-  company      String?
-  role         String?
-  content      String
-  image        String?
-  rating       Int      @default(5)
-  isPublished  Boolean  @default(false)
-  isDeleted    Boolean  @default(false)
-  displayOrder Int      @default(0)
-  slug         String?  @unique
-  updatedById  String?
-  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  author             String
+  company            String?
+  role               String?
+  content            String
+  image              String?
+  rating             Int       @default(5)
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String?   @unique
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_testimonials")
 }
 
 model FAQ {
-  id           String   @id @default(uuid())
-  question     String
-  answer       String
-  isPublished  Boolean  @default(false)
-  isDeleted    Boolean  @default(false)
-  displayOrder Int      @default(0)
-  slug         String?  @unique
-  updatedById  String?
-  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  question           String
+  answer             String
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String?   @unique
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_faqs")
 }
 
 model Technology {
-  id           String   @id @default(uuid())
-  name         String
-  category     String?
-  logo         String?
-  isPublished  Boolean  @default(false)
-  isDeleted    Boolean  @default(false)
-  displayOrder Int      @default(0)
-  slug         String?  @unique
-  updatedById  String?
-  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  name               String
+  category           String?
+  logo               String?
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String?   @unique
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_technologies")
 }
 
 model TeamMember {
-  id           String   @id @default(uuid())
-  name         String
-  role         String
-  bio          String?
-  image        String?
-  socialLinks  Json?
-  isPublished  Boolean  @default(false)
-  isDeleted    Boolean  @default(false)
-  displayOrder Int      @default(0)
-  slug         String?  @unique
-  updatedById  String?
-  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  name               String
+  role               String
+  bio                String?
+  image              String?
+  socialLinks        Json?
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String?   @unique
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_team_members")
 }
@@ -343,32 +351,34 @@ model SiteSetting {
 }
 
 model SocialLink {
-  id           String   @id @default(uuid())
-  platform     String
-  url          String
-  isPublished  Boolean  @default(false)
-  isDeleted    Boolean  @default(false)
-  displayOrder Int      @default(0)
-  slug         String?  @unique
-  updatedById  String?
-  updatedBy    User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  platform           String
+  url                String
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  displayOrder       Int       @default(0)
+  slug               String?   @unique
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_social_links")
 }
 
 model Footer {
-  id            String   @id @default(uuid())
-  copyrightText String
-  links         Json?
-  isPublished   Boolean  @default(false)
-  isDeleted     Boolean  @default(false)
-  slug          String?  @unique
-  updatedById   String?
-  updatedBy     User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                 String    @id @default(uuid())
+  copyrightText      String
+  links              Json?
+  isPublished        Boolean   @default(false)
+  isDeleted          Boolean   @default(false)
+  slug               String?   @unique
+  updatedById        String?
+  updatedBy          User?     @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  scheduledPublishAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@map("cms_footer")
 }

@@ -4,13 +4,31 @@ import { useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { techStack } from "@/lib/constants";
 
-export default function TechStack() {
+export default function TechStack({ data }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [activeCategory, setActiveCategory] = useState("Marketing & Growth");
+
+  let groupedTech = [];
+  if (data && data.length > 0) {
+    const categoriesSet = new Set(data.map((t) => t.category || "General").filter(Boolean));
+    groupedTech = Array.from(categoriesSet).map((catName) => ({
+      category: catName,
+      techs: data
+        .filter((t) => (t.category || "General") === catName)
+        .map((t) => ({
+          name: t.name,
+          icon: t.logo || "🛠️",
+        })),
+    }));
+  }
+
+  const stack = groupedTech.length > 0 ? groupedTech : techStack;
+
+  const [activeCategory, setActiveCategory] = useState(null);
+  const currentCategory = activeCategory || stack[0]?.category || "";
 
   const activeTechs =
-    techStack.find((c) => c.category === activeCategory)?.techs || [];
+    stack.find((c) => c.category === currentCategory)?.techs || [];
 
   return (
     <section ref={ref} className="section-spacing relative" id="tech">
@@ -39,12 +57,12 @@ export default function TechStack() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="flex justify-center gap-3 mb-12 flex-wrap"
         >
-          {techStack.map((cat) => (
+          {stack.map((cat) => (
             <button
               key={cat.category}
               onClick={() => setActiveCategory(cat.category)}
               className={`filter-pill ${
-                activeCategory === cat.category ? "active" : ""
+                currentCategory === cat.category ? "active" : ""
               }`}
             >
               {cat.category}
