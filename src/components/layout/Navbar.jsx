@@ -87,8 +87,27 @@ export default function Navbar({ settings }) {
             </div>
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center gap-3.5">
+            <Link href="/client">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-4 py-2 rounded-full border border-glass-border hover:border-white/20 bg-dark-300/40 hover:bg-dark-300/80 text-muted hover:text-white text-xs font-medium transition-all duration-300"
+              >
+                Client Portal
+              </motion.button>
+            </Link>
+            <Link href="/client">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="px-4 py-2 rounded-full border border-primary/20 hover:border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition-all duration-300"
+              >
+                Sign Up
+              </motion.button>
+            </Link>
+            <div className="h-4 w-[1px] bg-glass-border mx-1" />
             <Link href="/contact">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -176,9 +195,19 @@ export default function Navbar({ settings }) {
                   initial={{ x: 20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.35 }}
-                  className="mt-4"
+                  className="mt-4 flex flex-col gap-2"
                 >
-                  <Link href="/contact" className="block">
+                  <Link href="/client" className="block">
+                    <button className="w-full py-2.5 rounded-xl border border-glass-border bg-dark-200 hover:bg-dark-300 text-white text-sm font-medium transition">
+                      Client Portal Login
+                    </button>
+                  </Link>
+                  <Link href="/client" className="block">
+                    <button className="w-full py-2.5 rounded-xl border border-primary/20 bg-primary/10 hover:bg-primary/20 text-primary text-sm font-medium transition">
+                      Client Sign Up
+                    </button>
+                  </Link>
+                  <Link href="/contact" className="block mt-2">
                     <button className="btn-primary w-full flex items-center justify-center gap-2">
                       <span>Let's Talk</span>
                       <ArrowRight size={16} />
