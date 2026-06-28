@@ -1,6 +1,7 @@
 import { TokenService } from "../services/tokenService";
 import { PermissionRepository } from "../repositories/permissionRepository";
 import { UnauthorizedError, ForbiddenError } from "../utils/errors";
+import { requestContext } from "../utils/context";
 import logger from "../utils/logger";
 
 /**
