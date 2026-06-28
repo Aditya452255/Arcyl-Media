@@ -33,12 +33,37 @@ export default function ContactPage() {
     );
   };
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Form submission logic
-    console.log({ ...formData, projectTypes: selectedTypes });
-    alert("Thank you for reaching out! We have received your message and will get back to you shortly.");
-    setFormData({ firstName: "", email: "", message: "" });
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.firstName,
+          email: formData.email,
+          subject: selectedTypes.length > 0 ? `Goal: ${selectedTypes.join(", ")}` : "General Query",
+          message: formData.message,
+          phone: "",
+        }),
+      });
+
+      const payload = await res.json();
+      if (!res.ok) {
+        throw new Error(payload.message || "Failed to submit query.");
+      }
+
+      alert("Thank you for reaching out! We have received your query and it is now recorded in our admin panel.");
+      setFormData({ firstName: "", email: "", message: "" });
+      setSelectedTypes(["Digital Marketing"]);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -203,10 +228,11 @@ export default function ContactPage() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     type="submit"
-                    className="btn-primary w-full py-4 text-base font-medium flex items-center justify-center gap-3 shadow-glow"
+                    disabled={submitting}
+                    className="btn-primary w-full py-4 text-base font-medium flex items-center justify-center gap-3 shadow-glow disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span>Send Your Message</span>
-                    <Send size={18} className="relative z-10 text-white" />
+                    <span>{submitting ? "Sending Query..." : "Send Your Message"}</span>
+                    {!submitting && <Send size={18} className="relative z-10 text-white" />}
                   </motion.button>
                 </form>
               </div>

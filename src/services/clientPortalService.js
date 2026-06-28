@@ -277,4 +277,39 @@ export class ClientPortalService {
     });
     if (!project) throw new NotFoundError("Project not found or client access denied");
   }
+
+  static async requestProject(clientId, userId, data) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundError("User not found");
+
+    const project = await prisma.project.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        clientId,
+        status: "PLANNING",
+        priority: "MEDIUM",
+        progress: 0,
+      },
+    });
+
+    // Log audit trail
+    await AuditService.log("CLIENT_PROJECT_ENQUIRY", { projectId: project.id, clientId }, userId, user, project, "Project");
+
+    // Notify all admin or manager users
+    const admins = await prisma.userRole.findMany({
+      where: { role: { name: { in: ["SUPER_ADMIN", "ADMIN", "MANAGER"] } } },
+      select: { userId: true },
+    });
+    for (const admin of admins) {
+      await NotificationService.notifyUser(
+        admin.userId,
+        "New Project Enquiry",
+        `Client "${user.name}" has requested a new project: "${project.name}".`,
+        "PROJECT_ENQUIRY"
+      ).catch(() => {});
+    }
+
+    return project;
+  }
 }

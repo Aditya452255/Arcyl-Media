@@ -13,10 +13,6 @@ export default function Navbar({ settings }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/client")) {
-    return null;
-  }
-
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -28,6 +24,10 @@ export default function Navbar({ settings }) {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/client")) {
+    return null;
+  }
 
   const logoSrc = settings?.logo || "/logo-a.png";
 

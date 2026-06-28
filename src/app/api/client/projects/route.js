@@ -7,3 +7,9 @@ export const GET = withErrorHandler(
     return await ClientPortalController.getProjects(req);
   })
 );
+
+export const POST = withErrorHandler(
+  withClientAuth(async (req) => {
+    return await ClientPortalController.requestProject(req);
+  })
+);

@@ -43,6 +43,42 @@ export default function ClientProjectsPage() {
   const [error, setError] = useState("");
   const chatBottomRef = useRef(null);
 
+  // Project request states
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDesc, setNewProjectDesc] = useState("");
+  const [submittingEnquiry, setSubmittingEnquiry] = useState(false);
+
+  const handleRequestProject = async (e) => {
+    e.preventDefault();
+    if (!newProjectName.trim() || !newProjectDesc.trim()) return;
+    setSubmittingEnquiry(true);
+
+    try {
+      const res = await fetch("/api/client/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newProjectName,
+          description: newProjectDesc,
+        }),
+      });
+
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.message || "Failed to submit project request");
+
+      alert("Enquiry submitted successfully! It has been recorded, and our team will get in touch soon.");
+      setNewProjectName("");
+      setNewProjectDesc("");
+      setShowRequestModal(false);
+      fetchProjects(); // Reload list
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSubmittingEnquiry(false);
+    }
+  };
+
   // Load projects list
   const fetchProjects = useCallback(async () => {
     setLoading(true);
@@ -220,15 +256,25 @@ export default function ClientProjectsPage() {
 
       {/* Main container */}
       <div className="flex flex-col gap-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {selectedProject ? selectedProject.name : "Projects Directory"}
-          </h1>
-          <p className="text-sm text-slate-450 mt-1">
-            {selectedProject
-              ? "Collaboration workspace, file exchange ledger, and progress milestones"
-              : "Ongoing active developments and system deliverables archives"}
-          </p>
+        <div className="flex flex-row justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {selectedProject ? selectedProject.name : "Projects Directory"}
+            </h1>
+            <p className="text-sm text-slate-450 mt-1">
+              {selectedProject
+                ? "Collaboration workspace, file exchange ledger, and progress milestones"
+                : "Ongoing active developments and system deliverables archives"}
+            </p>
+          </div>
+          {!selectedProject && (
+            <button
+              onClick={() => setShowRequestModal(true)}
+              className="px-4 py-2 bg-violet-650 hover:bg-violet-755 text-white text-xs font-semibold rounded-lg transition shadow-md shadow-violet-950/20"
+            >
+              Request New Project
+            </button>
+          )}
         </div>
 
         {/* ────────────────── PROJECTS LIST VIEW ────────────────── */}
@@ -624,6 +670,66 @@ export default function ClientProjectsPage() {
                 }`}
               >
                 Submit Decision
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ────────────────── REQUEST PROJECT MODAL ────────────────── */}
+      {showRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="h-14 flex items-center justify-between px-6 border-b border-slate-800">
+              <h3 className="font-semibold text-slate-200">
+                Request New Project
+              </h3>
+              <button
+                onClick={() => {
+                  setShowRequestModal(false);
+                  setNewProjectName("");
+                  setNewProjectDesc("");
+                }}
+                className="text-slate-550 hover:text-slate-200"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleRequestProject} className="p-6 flex flex-col gap-4">
+              <p className="text-xs text-slate-400">
+                Submit a new project request or enquiry. Our team will review the requirements and link it to your workspace.
+              </p>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Project Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. E-Commerce Development"
+                  value={newProjectName}
+                  onChange={(e) => setNewProjectName(e.target.value)}
+                  className="px-3 py-2.5 bg-slate-950/60 border border-slate-850 rounded-lg text-xs focus:outline-none focus:border-violet-500 text-slate-200"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Requirements / Description</label>
+                <textarea
+                  required
+                  placeholder="Describe your project goals, scope, and requested timeline..."
+                  value={newProjectDesc}
+                  onChange={(e) => setNewProjectDesc(e.target.value)}
+                  className="px-3 py-2 bg-slate-950/60 border border-slate-850 rounded-lg text-xs focus:outline-none focus:border-violet-500 text-slate-200 h-28 resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submittingEnquiry}
+                className="w-full py-2.5 rounded-lg text-xs font-semibold bg-violet-650 hover:bg-violet-755 text-white transition disabled:opacity-50"
+              >
+                {submittingEnquiry ? "Submitting Enquiry..." : "Submit Project Enquiry"}
               </button>
             </form>
           </div>

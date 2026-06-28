@@ -21,6 +21,11 @@ const profileSchema = z.object({
   profilePicture: z.string().optional().nullable(),
 });
 
+const requestProjectSchema = z.object({
+  name: z.string().min(1, "Project name is required"),
+  description: z.string().min(1, "Project details/description is required"),
+});
+
 export class ClientPortalController {
   static async getDashboard(req) {
     const { clientId, id: userId } = req.user;
@@ -120,5 +125,19 @@ export class ClientPortalController {
     }
     const updated = await ClientPortalService.updateProfile(userId, clientId, parsed.data);
     return ApiResponse.success("Profile updated successfully", updated, 200);
+  }
+
+  static async requestProject(req) {
+    const { clientId, id: userId } = req.user;
+    const body = await req.json();
+    const parsed = requestProjectSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new ValidationError(
+        "Validation failed",
+        parsed.error.issues.map((i) => ({ field: i.path.join("."), message: i.message }))
+      );
+    }
+    const project = await ClientPortalService.requestProject(clientId, userId, parsed.data);
+    return ApiResponse.success("Project enquiry submitted successfully", project, 201);
   }
 }
